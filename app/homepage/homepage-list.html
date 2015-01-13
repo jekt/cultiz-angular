@@ -1,0 +1,12 @@
+<section>
+	<h1>Homepage</h1>
+	<ul>
+		<li ng-repeat="article in hp.articleList">
+			<a href ng-click="hp.showArticle(article.id)">{{article.title}}</a>
+			<div ng-show="hp.isShown(article.id)">
+				<!--<p ng-bind-html="article.content | safeHtml"></p>-->
+				{{article.content}}
+			</div>
+		</li>
+	</ul>
+</section>
