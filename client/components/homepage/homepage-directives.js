@@ -4,13 +4,13 @@
 	app.directive('homepageList', function(){
 		return {
 			restrict: 'E',
-			templateUrl: 'homepage/homepage-list.html',
+			templateUrl: 'components/homepage/homepage-list.html',
 			controller: ['$http', function($http){
 				var hp = this;
 				hp.articleList = [];
 				hp.currentArticle = 0;
 
-				$http.get('homepage/simulation-hp.json')
+				$http.get('components/homepage/simulation-hp.json')
 					.success(function(data){
 						hp.articleList = data.posts;
 					});

@@ -1,0 +1,16 @@
+{
+  "name": "cultiz-angular",
+  "version": "0.0.1",
+  "description": "",
+  "main": "server/server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Jekt",
+  "license": "ISC",
+  "dependencies": {
+    "crypto": "0.0.3",
+    "express": "^4.11.1",
+    "request": "^2.53.0"
+  }
+}
