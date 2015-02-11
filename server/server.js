@@ -4,6 +4,8 @@ var express = require('express'),
 	app = express(),
 	proxy = require('./lib/proxy');
 
+global.__root = require('path').resolve(__dirname, '..');
+
 //app.use(express.static(__dirname + '/public'));
 
 app.use('/favicon.ico', function(req, res, next){

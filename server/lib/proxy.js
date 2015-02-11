@@ -2,9 +2,7 @@
 
 var request = require('request'),
 	url = require('url'),
-	fs = require('fs'),
-	zlib = require('zlib'),
-	crypto = require('crypto');
+	cache = require('./cache');
 
 exports.getJSON = function(clientReq, clientRes){
 	console.log('Request ' + clientReq.method + ' ' + clientReq.url + ' received at ' + Date());
@@ -29,20 +27,11 @@ exports.getJSON = function(clientReq, clientRes){
 		},
 	
 		function(error, proxyRes, json){
-			if (error) throw error;
-			if (proxyRes.statusCode === 200){
-				fs.writeFile(__dirname + '/cache/' + encodeSHA1(reqURL) + '.json', 
-							json, 
-							function(err){
-								if (err) throw err;
-								clientRes.json(json);
-							})
+			if (!error && proxyRes.statusCode === 200){
+				cache.writeFile(reqURL, json, function(){
+					clientRes.json(json);
+				});
 			}
 		});
 };
 
-function encodeSHA1(string){
-	var shasum = crypto.createHash('sha1');
-	shasum.update(string);
-	return shasum.digest('hex');
-}
