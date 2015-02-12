@@ -2,18 +2,19 @@
 
 var express = require('express'),
 	app = express(),
-	proxy = require('./lib/proxy');
+	proxy = require('./lib/proxy'),
+	fs = require('fs');
 
 global.__root = require('path').resolve(__dirname, '..');
-global.__cache = true;
-
-//app.use(express.static(__dirname + '/public'));
+global.__cacheRequests = true;
+global.__cacheDir = __root + '/server/cache';
 
 app.use('/favicon.ico', function(req, res, next){
     res.end();
 });
 
 app.use('/api', proxy.getJSON);
+app.use('/flush', proxy.flush);
 
 app.listen(1234, function(){
 	console.log('Listening to port 1234...')

@@ -5,8 +5,6 @@ var request = require('request'),
 	cache = require('./cache');
 
 exports.getJSON = function(clientReq, clientRes){
-	console.log('Request ' + clientReq.method + ' ' + clientReq.url + ' received at ' + Date());
-	
 	var reqURL = {
 		protocol: 'http:',
 		hostname: 'cultiz.com',
@@ -17,30 +15,47 @@ exports.getJSON = function(clientReq, clientRes){
 
 	reqURL = url.format(reqURL);
 
-	if (__cache) {
+	if (__cacheRequests) {
 		cache.fileExists(reqURL, function(file){
 			if (file){
-				getCachedRequest(file, function(json){
-					clientRes.json(json);
+				getCachedRequest(file, function(data){
+					clientRes.json(JSON.parse(data));
 				});
 			} else {
-				makeRequest(reqURL, function(json){
-					clientRes.json(json);
+				makeRequest(reqURL, function(data){
+					clientRes.json(data);
 				});
 			}
 		});
 	} else {
-		makeRequest(reqURL, function(json){
-			clientRes.json(json);
+		makeRequest(reqURL, function(data){
+			clientRes.json(data);
 		});
 	}
 	
 };
 
+exports.flush = function(clientReq, clientRes){
+	var reqURL = {
+		protocol: 'http:',
+		hostname: 'cultiz.com',
+		port: 80,
+		pathname: '/api' + clientReq.path,
+		query: clientReq.query
+	};
+
+	reqURL = url.format(reqURL);
+	flushCachedRequest(reqURL, function(){
+		clientRes.json({
+			status: 'ok'
+		});
+	});
+};
+
 function getCachedRequest(file, callback){
 	cache.readFile(file, function(data){
 		console.log('Request already cached, serving cached file: ' + file);
-		callback(JSON.parse(data));
+		callback(data);
 	});
 }
 
@@ -54,14 +69,22 @@ function makeRequest(reqURL, callback){
 		json: true
 	},
 
-	function(err, proxyRes, json){
-		console.log(reqURL + ' no cached yet, requesting json');
+	function(err, proxyRes, data){
+		console.log(reqURL + ' no cached yet, requesting data');
 		if (err) throw err;
 		if (proxyRes.statusCode === 200){
-			cache.writeFile(reqURL, json, function(file){
+			cache.writeFile(reqURL, data, function(file){
 				console.log('Caching request in file: ' + file);
-				callback(json);
+				callback(data);
 			});
 		}
+	});
+}
+
+function flushCachedRequest(reqURL, callback){
+	cache.deleteFile(reqURL, function(deleted){
+		if (deleted) console.log('Request flushed');
+		else console.log('File didn\'t exist, request not flushed');
+		callback();
 	});
 }

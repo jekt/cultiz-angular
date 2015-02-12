@@ -5,7 +5,7 @@ var fs = require('fs'),
 	sha1 = require('./sha1');
 
 exports.writeFile = function(url, json, success){
-	var file = __root + '/server/cache/' + sha1.encode(url) + '.gz';
+	var file = __cacheDir + '/' + sha1.encode(url) + '.gz';
 
 	zlib.deflate(JSON.stringify(json), function(err, buffer){
 		if (err) throw err;
@@ -30,8 +30,15 @@ exports.readFile = function(file, success){
 };
 
 exports.fileExists = function(url, callback){
-	var file = __root + '/server/cache/' + sha1.encode(url) + '.gz';
+	var file = __cacheDir + '/' + sha1.encode(url) + '.gz';
 	fs.exists(file, function (exists) {
 		callback(exists ? file : undefined);
+	});
+};
+
+exports.deleteFile = function(url, callback){
+	fs.unlink(__cacheDir + '/' + sha1.encode(url) + '.gz', function (err) {
+		if (err) throw err;
+		callback(true);
 	});
 };
