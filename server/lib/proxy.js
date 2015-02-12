@@ -16,9 +16,10 @@ exports.getJSON = function(clientReq, clientRes){
 	reqURL = url.format(reqURL);
 
 	if (__cacheRequests) {
-		cache.fileExists(reqURL, function(file){
-			if (file){
-				getCachedRequest(file, function(data){
+		cache.exists(reqURL, function(key){
+			console.log(key);
+			if (key){
+				getCachedRequest(reqURL, function(data){
 					clientRes.json(JSON.parse(data));
 				});
 			} else {
@@ -53,7 +54,7 @@ exports.flush = function(clientReq, clientRes){
 };
 
 function getCachedRequest(file, callback){
-	cache.readFile(file, function(data){
+	cache.get(file, function(data){
 		console.log('Request already cached, serving cached file: ' + file);
 		callback(data);
 	});
@@ -73,8 +74,12 @@ function makeRequest(reqURL, callback){
 		console.log(reqURL + ' no cached yet, requesting data');
 		if (err) throw err;
 		if (proxyRes.statusCode === 200){
-			cache.writeFile(reqURL, data, function(file){
+			/*cache.set(reqURL, data, function(file){
 				console.log('Caching request in file: ' + file);
+				callback(data);
+			});*/
+			cache.set(reqURL, data, function(){
+				console.log('Caching request in redis');
 				callback(data);
 			});
 		}
@@ -82,7 +87,7 @@ function makeRequest(reqURL, callback){
 }
 
 function flushCachedRequest(reqURL, callback){
-	cache.deleteFile(reqURL, function(deleted){
+	cache.delete(reqURL, function(deleted){
 		if (deleted) console.log('Request flushed');
 		else console.log('File didn\'t exist, request not flushed');
 		callback();
