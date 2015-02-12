@@ -5,19 +5,13 @@ var request = require('request'),
 	cache = require('./cache');
 
 exports.getJSON = function(clientReq, clientRes){
-	var reqURL = {
-		protocol: 'http:',
-		hostname: 'cultiz.com',
-		port: 80,
-		pathname: '/api' + clientReq.path,
-		query: clientReq.query
-	};
-
+	var reqURL = __proxy;
+	reqURL.pathname = '/api' + clientReq.path;
+	reqURL.query = clientReq.query;
 	reqURL = url.format(reqURL);
 
-	if (__cacheRequests) {
+	if (__cache.requests) {
 		cache.exists(reqURL, function(key){
-			console.log(key);
 			if (key){
 				getCachedRequest(reqURL, function(data){
 					clientRes.json(JSON.parse(data));
@@ -37,15 +31,11 @@ exports.getJSON = function(clientReq, clientRes){
 };
 
 exports.flush = function(clientReq, clientRes){
-	var reqURL = {
-		protocol: 'http:',
-		hostname: 'cultiz.com',
-		port: 80,
-		pathname: '/api' + clientReq.path,
-		query: clientReq.query
-	};
-
+	var reqURL = __proxy;
+	reqURL.pathname = '/api' + clientReq.path;
+	reqURL.query = clientReq.query;
 	reqURL = url.format(reqURL);
+
 	flushCachedRequest(reqURL, function(){
 		clientRes.json({
 			status: 'ok'
@@ -53,16 +43,16 @@ exports.flush = function(clientReq, clientRes){
 	});
 };
 
-function getCachedRequest(file, callback){
-	cache.get(file, function(data){
-		console.log('Request already cached, serving cached file: ' + file);
+function getCachedRequest(url, callback){
+	cache.get(url, function(data){
+		console.log('Request already cached, serving cached file: ' + url);
 		callback(data);
 	});
 }
 
-function makeRequest(reqURL, callback){
+function makeRequest(url, callback){
 	request({
-		url: reqURL,
+		url: url,
 		method: "GET",
 		timeout: 10000,
 		followRedirect: true,
@@ -71,25 +61,26 @@ function makeRequest(reqURL, callback){
 	},
 
 	function(err, proxyRes, data){
-		console.log(reqURL + ' no cached yet, requesting data');
-		if (err) throw err;
-		if (proxyRes.statusCode === 200){
-			/*cache.set(reqURL, data, function(file){
-				console.log('Caching request in file: ' + file);
-				callback(data);
-			});*/
-			cache.set(reqURL, data, function(){
-				console.log('Caching request in redis');
-				callback(data);
-			});
+		console.log(url + ' no cached yet, requesting data');
+		if (err) {
+			callback({ error: err.code });
+		} else {
+			if (proxyRes.statusCode === 200){
+				cache.set(url, data, function(){
+					console.log('Caching request in redis');
+					callback(data);
+				});
+			} else {
+				callback({ status: proxyRes.statusCode });
+			}
 		}
 	});
 }
 
-function flushCachedRequest(reqURL, callback){
-	cache.delete(reqURL, function(deleted){
-		if (deleted) console.log('Request flushed');
-		else console.log('File didn\'t exist, request not flushed');
+function flushCachedRequest(url, callback){
+	cache.delete(url, function(key){
+		if (key) console.log('Request flushed: ' + key);
+		else console.log('Key didn\'t exist in Redis, request not flushed');
 		callback();
 	});
 }
