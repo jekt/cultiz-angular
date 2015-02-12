@@ -17,21 +17,32 @@ exports.getJSON = function(clientReq, clientRes){
 
 	reqURL = url.format(reqURL);
 
-	request({
-			url: reqURL,
-			method: "GET",
-			timeout: 10000,
-			followRedirect: true,
-			encoding: 'utf8',
-			json: true
-		},
-	
-		function(error, proxyRes, json){
-			if (!error && proxyRes.statusCode === 200){
-				cache.writeFile(reqURL, json, function(){
-					clientRes.json(json);
-				});
-			}
-		});
+	cache.fileExists(reqURL, function(file){
+		if (file){
+			cache.readFile(file, function(data){
+				console.log('Request already cached, serving cached file: ' + file);
+				clientRes.json(JSON.parse(data));
+			});
+		} else {
+			request({
+				url: reqURL,
+				method: "GET",
+				timeout: 10000,
+				followRedirect: true,
+				encoding: 'utf8',
+				json: true
+			},
+		
+			function(error, proxyRes, json){
+				console.log(reqURL + ' no cached yet, requesting json');
+				if (!error && proxyRes.statusCode === 200){
+					cache.writeFile(reqURL, json, function(file){
+						console.log('Caching request in file: ' + file);
+						clientRes.json(json);
+					});
+				}
+			});
+		}
+	});
 };
 
