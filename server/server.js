@@ -5,6 +5,7 @@ var express = require('express'),
 	proxy = require('./lib/proxy');
 
 global.__root = require('path').resolve(__dirname, '..');
+global.__cache = true;
 
 //app.use(express.static(__dirname + '/public'));
 
