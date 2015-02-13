@@ -19,12 +19,12 @@ app.use('/favicon.ico', function(req, res, next){
     res.end();
 });
 
-/*app.route('/api/:route(^get_[a-z_]+)')
+app	.route('/api/:route')
 	.get(proxy.getJSON)
-   	.delete(proxy.flush);*/
+   	.delete(proxy.flush);
 
-app.use('/api', proxy.getJSON);
-app.use('/fluxh', proxy.flush);
+/*app.use('/api', proxy.getJSON);
+app.use('/fluxh', proxy.flush);*/
 
 app.listen(1234, function(){
 	console.log('Listening to port 1234...')

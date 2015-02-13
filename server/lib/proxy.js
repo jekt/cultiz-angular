@@ -6,7 +6,7 @@ var request = require('request'),
 
 exports.getJSON = function(clientReq, clientRes){
 	var reqURL = __proxy;
-	reqURL.pathname = '/api' + clientReq.path;
+	reqURL.pathname = '/api/' + clientReq.params.route;
 	reqURL.query = clientReq.query;
 	reqURL = url.format(reqURL);
 
@@ -32,7 +32,7 @@ exports.getJSON = function(clientReq, clientRes){
 
 exports.flush = function(clientReq, clientRes){
 	var reqURL = __proxy;
-	reqURL.pathname = '/api' + clientReq.path;
+	reqURL.pathname = '/api/' + clientReq.params.route;
 	reqURL.query = clientReq.query;
 	reqURL = url.format(reqURL);
 
